@@ -1,11 +1,13 @@
-require('dotenv').config();
+
 const express = require('express');
 const path=require('path');
-const dataConnect = require('./app/config/dbcon')
-
 const app = express()
 
+const dataConnect = require('./app/config/dbcon')
 dataConnect()
+
+app.set('view engine', 'ejs')
+app.set('views', 'views')
 
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
