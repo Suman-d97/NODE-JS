@@ -65,6 +65,9 @@ class UserApiController {
       });
     }
   }
+
+
+  
   async updateUser(req, res) {
     try {
       const id = req.params.id;

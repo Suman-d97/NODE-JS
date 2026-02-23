@@ -1,0 +1,11 @@
+productId,productName,category,brand,price,stock,rating
+P001,Wireless Mouse,Electronics,Logitech,799,120,4.5
+P002,Mechanical Keyboard,Electronics,Redragon,2499,60,4.6
+P003,USB-C Charger,Electronics,Anker,1299,200,4.4
+P004,Running Shoes,Footwear,Nike,3999,45,4.7
+P005,Cotton T-Shirt,Clothing,Puma,999,150,4.2
+P006,Office Chair,Furniture,GreenSoul,8999,30,4.5
+P007,Water Bottle,Home Essentials,Milton,499,300,4.1
+P008,Smart Watch,Electronics,Noise,2999,80,4.3
+P009,Backpack,Bags,American Tourister,1999,70,4.6
+P010,LED Desk Lamp,Home Essentials,Wipro,1499,90,4.4
