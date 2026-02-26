@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import Link from "next/link";
+import { generateStudentPdf } from "@/utils/pdfGenerator";
 
 const TABS = [
   { id: "basic", label: "Basic Details" },
@@ -16,47 +18,102 @@ export default function Home() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [submitStage, setSubmitStage] = useState<"initial" | "review" | "success">("initial");
   const [isDeclarationChecked, setIsDeclarationChecked] = useState(false);
+  const [downloadMessage, setDownloadMessage] = useState<string | null>(null);
   
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPdf = async () => {
-    if (!pdfRef.current) return;
     try {
       setIsGeneratingPdf(true);
-      const html2canvas = (await import('html2canvas')).default;
-      const { jsPDF } = await import('jspdf');
-
-      // Small delay to ensure any potential reflow is done
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: document.documentElement.className.includes('dark') ? '#18181b' : '#ffffff',
-      });
+      setDownloadMessage(null);
       
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
+      const payload = {
+        Basic_Information: {
+          First_Name: formData.firstName,
+          Last_Name: formData.lastName,
+          Email_Address: formData.email,
+          Phone_Number: formData.phone,
+          Date_of_Birth: formData.dob,
+        },
+        Address_Details: {
+          Street_Address: formData.street,
+          Apartment_Number: formData.apartment,
+          City: formData.city,
+          State: formData.state,
+          Postal_Code: formData.zip,
+        },
+        Educational_Background: {
+          Institution_Name: formData.institution,
+          Year_of_Graduation: formData.graduationYear,
+          Field_of_Study: formData.major,
+          Percentage_or_CGPA: formData.cgpa,
+        },
+      };
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('student_application.pdf');
+      await generateStudentPdf(payload);
+      
+      setDownloadMessage("PDF has been successfully downloaded to your device.");
+      
+      // Clear the message after a few seconds
+      setTimeout(() => {
+        setDownloadMessage(null);
+      }, 5000);
+      
     } catch (error) {
       console.error('Error generating PDF:', error);
+      alert("Failed to generate PDF. You may need to update your browser.");
     } finally {
       setIsGeneratingPdf(false);
     }
   };
 
   const handleFinalSubmit = async () => {
-    await handleDownloadPdf();
-    setSubmitStage("success");
+    try {
+      setIsGeneratingPdf(true); // Re-use the loading state to disable the button
+      const payload = {
+        Basic_Information: {
+          First_Name: formData.firstName,
+          Last_Name: formData.lastName,
+          Email_Address: formData.email,
+          Phone_Number: Number(formData.phone.replace(/\D/g, '')),
+          Date_of_Birth: new Date(formData.dob).toISOString(),
+        },
+        Address_Details: {
+          Street_Address: formData.street,
+          Apartment_Number: formData.apartment ? Number(formData.apartment) : undefined,
+          City: formData.city,
+          State: formData.state,
+          Postal_Code: Number(formData.zip),
+        },
+        Educational_Background: {
+          Institution_Name: formData.institution,
+          Year_of_Graduation: Number(formData.graduationYear),
+          Field_of_Study: formData.major,
+          Percentage_or_CGPA: Number(formData.cgpa),
+        },
+      };
+
+      // Use the Next.js proxy rewrite to bypass browser CORS constraints
+      const response = await fetch('/api/v1/students', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit student application");
+      }
+
+      await handleDownloadPdf();
+      setSubmitStage("success");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("There was an error submitting your application. Please try again.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const [formData, setFormData] = useState({
@@ -126,13 +183,21 @@ export default function Home() {
 
       <div className="w-full max-w-4xl bg-white dark:bg-zinc-900 shadow-xl rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 transition-all duration-300">
         {/* Header */}
-        <div className="bg-blue-600 dark:bg-blue-700 px-8 py-6 text-white text-center">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Student Application Form
-          </h1>
-          <p className="mt-2 text-blue-100/80 text-sm">
-            Please fill out all the details carefully.
-          </p>
+        <div className="bg-blue-600 dark:bg-blue-700 px-8 py-6 text-white flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Student Application Form
+            </h1>
+            <p className="mt-2 text-blue-100/80 text-sm">
+              Please fill out all the details carefully.
+            </p>
+          </div>
+          <Link
+            href="/students"
+            className="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg text-sm font-medium transition-colors shadow-sm backdrop-blur-sm whitespace-nowrap"
+          >
+            View All Students →
+          </Link>
         </div>
 
         {submitStage === "success" ? (
@@ -146,12 +211,45 @@ export default function Home() {
             <p className="text-zinc-600 dark:text-zinc-400 mb-8 max-w-md mx-auto">
               Thank you for verifying your details. A copy of your application has been automatically downloaded to your device as a PDF.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-md hover:shadow-lg"
-            >
-              Submit Another Application
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                className="px-8 py-3 bg-white border border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+              >
+                {isGeneratingPdf ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Download PDF
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-md hover:shadow-lg cursor-pointer"
+              >
+                Submit Another Application
+              </button>
+            </div>
+            
+            {/* Show success message if PDF downloaded */}
+            {downloadMessage && (
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-lg text-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                  </svg>
+                  {downloadMessage}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <>

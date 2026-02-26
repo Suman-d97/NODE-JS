@@ -9,6 +9,6 @@ router.post('/students', studentFromController.create);
 router.get('/students/view/:id', studentFromController.findById);
 // router.post('/students/update/:id', studentFromController.update);
 // router.get('/students/delete/:id', studentFromController.delete);
-// router.get('/students/pdf', studentFromController.exportPDF);
+router.get('/students/pdf', studentFromController.getPDF);
 
 module.exports = router;
