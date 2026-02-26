@@ -106,7 +106,6 @@ export default function Home() {
         throw new Error("Failed to submit student application");
       }
 
-      await handleDownloadPdf();
       setSubmitStage("success");
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -209,7 +208,7 @@ export default function Home() {
             </div>
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Your form has submitted successfully!</h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-8 max-w-md mx-auto">
-              Thank you for verifying your details. A copy of your application has been automatically downloaded to your device as a PDF.
+              Thank you for verifying your details. Your application has been successfully submitted. You can download a copy of your application as a PDF below.
             </p>
             <div className="flex gap-4">
               <button
