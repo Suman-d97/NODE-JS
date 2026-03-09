@@ -13,7 +13,7 @@ const StudentFormSchema= new Schema({
     },
     Address_Details:{
         Street_Address :{type: String, required: true},
-        Apartment_Number :{type: Number},
+        Apartment_Number :{type: String},
         City :{type: String, required: true},
         State :{type: String, required: true},  
         Postal_Code :{type: Number, required: true}

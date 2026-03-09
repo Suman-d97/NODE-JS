@@ -112,42 +112,42 @@ class StudentFormController {
             );
 
             doc.pipe(res);
-            doc.fontSize(20).text('Student Details', { align: 'center' });
+            doc.fontSize(20).table('Student Details', { align: 'center' });
             doc.moveDown();
-            doc.fontSize(14).text('Basic Information');
-            doc.fontSize(12).text(
+            doc.fontSize(14).table('Basic Information');
+            doc.fontSize(12).table(
                 `Name: ${student.Basic_Information.First_Name} ${student.Basic_Information.Last_Name}`
             );
-            doc.text(`Email: ${student.Basic_Information.Email_Address}`);
-            doc.text(`Phone: ${student.Basic_Information.Phone_Number}`);
-            doc.text(
+            doc.table(`Email: ${student.Basic_Information.Email_Address}`);
+            doc.table(`Phone: ${student.Basic_Information.Phone_Number}`);
+            doc.table(
                 `Date of Birth: ${new Date(
                     student.Basic_Information.Date_of_Birth
                 ).toDateString()}`
             );
 
             doc.moveDown();
-            doc.fontSize(14).text('Address Details');
-            doc.fontSize(12).text(
+            doc.fontSize(14).table('Address Details');
+            doc.fontSize(12).table(
                 `Street: ${student.Address_Details.Street_Address}`
             );
-            doc.text(`City: ${student.Address_Details.City}`);
-            doc.text(`State: ${student.Address_Details.State}`);
-            doc.text(`Postal Code: ${student.Address_Details.Postal_Code}`);
+            doc.table(`City: ${student.Address_Details.City}`);
+            doc.table(`State: ${student.Address_Details.State}`);
+            doc.table(`Postal Code: ${student.Address_Details.Postal_Code}`);
 
             doc.moveDown();
 
-            doc.fontSize(14).text('Educational Background');
-            doc.fontSize(12).text(
+            doc.fontSize(14).table('Educational Background');
+            doc.fontSize(12).table(
                 `Institution: ${student.Educational_Background.Institution_Name}`
             );
-            doc.text(
+            doc.table(
                 `Field: ${student.Educational_Background.Field_of_Study}`
             );
-            doc.text(
+            doc.table(
                 `Year: ${student.Educational_Background.Year_of_Graduation}`
             );
-            doc.text(
+            doc.table(
                 `CGPA/Percentage: ${student.Educational_Background.Percentage_or_CGPA}`
             );
 
